@@ -107,6 +107,9 @@ func create(tag string, t time.Time) (f *os.File, filename string, err error) {
 	if len(logDirs) == 0 {
 		return nil, "", errors.New("log: no log dirs")
 	}
+
+	defer cleanup()
+
 	name, link := logName(tag, t)
 	var lastErr error
 	for _, dir := range logDirs {
