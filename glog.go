@@ -919,6 +919,16 @@ func CopyStandardLogTo(name string) {
 	stdLog.SetOutput(logBridge(sev))
 }
 
+// LogBridgeFor returns an io.Writer which can be passed to log.New(). Note
+// that you need to set log.Lshortfile as flags on your logger.
+func LogBridgeFor(name string) io.Writer {
+	sev, ok := severityByName(name)
+	if !ok {
+		panic(fmt.Sprintf("log.CopyLogTo(%q): unrecognized severity name", name))
+	}
+	return logBridge(sev)
+}
+
 // logBridge provides the Write method that enables CopyStandardLogTo to connect
 // Go's standard logs to the logs provided by this package.
 type logBridge severity
