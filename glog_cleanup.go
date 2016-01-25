@@ -24,8 +24,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
-	"strings"
 )
 
 var logTotalBytes = flag.Int64("log_total_bytes",
@@ -40,10 +40,15 @@ func cleanup() {
 	}
 
 	// Must match how logName() works.
-	prefix := fmt.Sprintf("%s.%s.%s.log.",
-		program,
-		host,
-		userName)
+	logRe, err := regexp.Compile(
+		fmt.Sprintf("^%s\\.[^.]+\\.%s\\.log\\.",
+			regexp.QuoteMeta(program),
+			regexp.QuoteMeta(userName)))
+	if err != nil {
+		// Print directly to stderr, as we cannot use log (might create a cycle).
+		fmt.Fprintf(os.Stderr, "Cannot clean up old logfiles: %v\n", err)
+		return
+	}
 
 	for _, dir := range logDirs {
 		logdir, err := os.Open(dir)
@@ -61,7 +66,7 @@ func cleanup() {
 		sizes := make(map[string]int64)
 		for _, fi := range infos {
 			name := fi.Name()
-			if !strings.HasPrefix(name, prefix) {
+			if !logRe.MatchString(name) {
 				continue
 			}
 			sorted = append(sorted, name)
