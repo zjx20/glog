@@ -3,7 +3,9 @@ package glog
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strconv"
 	"testing"
 	"time"
@@ -46,5 +48,28 @@ func TestCleanup(t *testing.T) {
 	// Verify that the old file is now gone.
 	if _, err := os.Stat(logFileName); !os.IsNotExist(err) {
 		t.Fatalf("%q: got %v, want %v", logFileName, err, os.ErrNotExist)
+	}
+}
+
+// When running on docker, hostnames are auto-generated. Ensure that sorting
+// the logfiles to see which one is the oldest ignores the hostname, otherwise
+// we might delete the logfile into which we are writing.
+func TestCleanupMultipleHostnames(t *testing.T) {
+	oldLogPath := filepath.Join(os.TempDir(), "glog.test.db7860cc55a8."+userName+".log.ERROR.20160219-170516.1")
+	newLogPath := filepath.Join(os.TempDir(), "glog.test.5b867334831d."+userName+".log.INFO.20160602-074008.1")
+	if err := ioutil.WriteFile(oldLogPath, []byte("123456"), 0644); err != nil {
+		t.Fatalf("Could not create logfile: %v", err)
+	}
+	if err := ioutil.WriteFile(newLogPath, []byte("1234"), 0644); err != nil {
+		t.Fatalf("Could not create logfile: %v", err)
+	}
+
+	flag.Set("log_total_bytes", "10")
+
+	cleanup()
+
+	// Verify that the file was not cleaned up yet.
+	if _, err := os.Stat(newLogPath); err != nil {
+		t.Fatalf("got %v, want %v", err, nil)
 	}
 }

@@ -41,7 +41,7 @@ func cleanup() {
 
 	// Must match how logName() works.
 	logRe, err := regexp.Compile(
-		fmt.Sprintf("^%s\\.[^.]+\\.%s\\.log\\.",
+		fmt.Sprintf("^%s\\.[^.]+\\.%s\\.log\\.(?:INFO|WARNING|ERROR|FATAL)\\.([^.]+)",
 			regexp.QuoteMeta(program),
 			regexp.QuoteMeta(userName)))
 	if err != nil {
@@ -64,12 +64,17 @@ func cleanup() {
 		var total int64
 		sorted := make([]string, 0, len(infos))
 		sizes := make(map[string]int64)
+		paths := make(map[string]string)
 		for _, fi := range infos {
 			name := fi.Name()
-			if !logRe.MatchString(name) {
+			matches := logRe.FindStringSubmatch(name)
+			if matches == nil {
 				continue
 			}
-			sorted = append(sorted, name)
+
+			timestamp := matches[1]
+			paths[timestamp] = name
+			sorted = append(sorted, timestamp)
 			sizes[name] = fi.Size()
 			total += fi.Size()
 		}
@@ -81,7 +86,7 @@ func cleanup() {
 
 		for total > *logTotalBytes && len(sorted) > 0 {
 			oldest := sorted[0]
-			name := filepath.Join(dir, sorted[0])
+			name := filepath.Join(dir, paths[sorted[0]])
 			if err := os.Remove(name); err != nil {
 				// Print directly to stderr, as we cannot use log (might create a cycle).
 				fmt.Fprintf(os.Stderr, "Could not clean up old logfile %q: %v\n", name, err)
