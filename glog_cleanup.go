@@ -75,7 +75,7 @@ func cleanup() {
 			timestamp := matches[1]
 			paths[timestamp] = name
 			sorted = append(sorted, timestamp)
-			sizes[name] = fi.Size()
+			sizes[timestamp] = fi.Size()
 			total += fi.Size()
 		}
 		// Save the sort if there is nothing to clean up.
