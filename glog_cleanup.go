@@ -33,7 +33,7 @@ var logTotalBytes = flag.Int64("log_total_bytes",
 	"Restrict total size of log files created by this binary to this number of bytes")
 
 // cleanup deletes old log files created by this binary (not restricted to the
-// current pid), when their total size exceeds -log_cleanup_bytes
+// current pid), when their total size exceeds -log_total_bytes
 func cleanup() {
 	if *logTotalBytes == -1 {
 		return
