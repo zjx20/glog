@@ -982,6 +982,16 @@ func (l *loggingT) setV(pc uintptr) Level {
 // See the documentation of V for more information.
 type Verbose bool
 
+// SetVLevel sets the global V level.
+func SetVLevel(level Level) {
+	logging.setVState(level, nil, false)
+}
+
+// GetVLevel returns the global V level.
+func GetVLevel() Level {
+	return logging.verbosity.get()
+}
+
 // V reports whether verbosity at the call site is at least the requested level.
 // The returned value is a boolean of type Verbose, which implements Info, Infoln
 // and Infof. These methods will write to the Info log if called.
