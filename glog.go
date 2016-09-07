@@ -978,6 +978,11 @@ func (l *loggingT) setV(pc uintptr) Level {
 	return 0
 }
 
+// AlsoToStderr updates the alsoToStderr field of the default logging object.
+func AlsoToStderr(enable bool) {
+	logging.alsoToStderr = enable
+}
+
 // Verbose is a boolean type that implements Infof (like Printf) etc.
 // See the documentation of V for more information.
 type Verbose bool
